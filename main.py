@@ -5,6 +5,7 @@ def solve(t, v, endCond, slopes=[]):
     numPts = len(t)
     A = np.ndarray((4 * (numPts - 1), 4 * (numPts - 1)))
     b = np.zeros(4 * (numPts - 1))
+
     for f in range(numPts - 1):
         stepT = t[f + 1] - t[f]
         A[4 * f] = np.concatenate((np.zeros(4 * f), np.array([0, 0, 0, 1]), np.zeros(4 * (numPts - f - 2))))
@@ -35,13 +36,6 @@ def solve(t, v, endCond, slopes=[]):
 
     return np.linalg.solve(A, b)
 
-def f(lst, x, t):
-    output = []
-    for a in lst:
-        i = findInterval(a, t)
-        output.append(float(x[4 * i] * (a - t[i])**3 + x[4 * i + 1] * (a - t[i])**2 + x[4 * i + 2] * (a - t[i]) + x[4 * i + 3]))
-    return output
-
 def findInterval(a, t):
     if a == t[-1]:
         return len(t) - 2
@@ -50,6 +44,13 @@ def findInterval(a, t):
             continue
         else:
             return i - 1
+
+def f(lst, x, t):
+    output = []
+    for a in lst:
+        i = findInterval(a, t)
+        output.append(float(x[4 * i] * (a - t[i])**3 + x[4 * i + 1] * (a - t[i])**2 + x[4 * i + 2] * (a - t[i]) + x[4 * i + 3]))
+    return output
 
 def main():
     np.set_printoptions(suppress = True)
@@ -66,12 +67,15 @@ def main():
     a = np.linspace(t[0], t[-1], 1000)
     y = f(a, x, t)
 
-    plt.plot(t, v)
-    plt.plot(a, y)
     plt.scatter(t, v, s = 30)
+    plt.plot(t, v)
+    plt.fill_between(a, y, step = "pre", alpha = 0.4)
+    plt.plot(a, y)
 
     plt.xlabel('Time (seconds)')
     plt.ylabel('Velocity (mph)')
+    plt.suptitle('Velocity vs. Time', fontsize = 14)
+    # plt.title(f'Distance to Reach {90} MPH: {round(integrate(90, x, t), 4)} miles', fontsize = 10)
     plt.show()
 
 if __name__ == '__main__':
