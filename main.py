@@ -1,34 +1,34 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def solve(t, v, endCond, slopes=[]):
+def solve(t, v, extraCond, slopes = []):
     numPts = len(t)
     A = np.ndarray((4 * (numPts - 1), 4 * (numPts - 1)))
     b = np.zeros(4 * (numPts - 1))
+    
+    for c in range(numPts - 1):
+        stepT = t[c + 1] - t[c]
+        A[4 * c] = np.concatenate((np.zeros(4 * c), np.array([0, 0, 0, 1]), np.zeros(4 * (numPts - c - 2))))
+        A[4 * c + 1] = np.concatenate((np.zeros(4 * c), np.array([stepT**3, stepT**2, stepT, 1]), np.zeros(4 * (numPts - c - 2))))
+        if c <= numPts - 3:
+            A[4 * c + 2] = np.concatenate((np.zeros(4 * c), np.array([3 * stepT**2, 2 * stepT, 1, 0, 0, 0, -1, 0]), np.zeros(4 * (numPts - c - 3))))
+            A[4 * c + 3] = np.concatenate((np.zeros(4 * c), np.array([6 * stepT, 2, 0, 0, 0, -2, 0, 0]), np.zeros(4 * (numPts - c - 3))))
+        b[4 * c] = v[c]
+        b[4 * c + 1] = v[c + 1]
 
-    for f in range(numPts - 1):
-        stepT = t[f + 1] - t[f]
-        A[4 * f] = np.concatenate((np.zeros(4 * f), np.array([0, 0, 0, 1]), np.zeros(4 * (numPts - f - 2))))
-        A[4 * f + 1] = np.concatenate((np.zeros(4 * f), np.array([stepT**3, stepT**2, stepT, 1]), np.zeros(4 * (numPts - f - 2))))
-        if f <= numPts - 3:
-            A[4 * f + 2] = np.concatenate((np.zeros(4 * f), np.array([3 * stepT**2, 2 * stepT, 1, 0, 0, 0, -1, 0]), np.zeros(4 * (numPts - f - 3))))
-            A[4 * f + 3] = np.concatenate((np.zeros(4 * f), np.array([6 * stepT, 2, 0, 0, 0, -2, 0, 0]), np.zeros(4 * (numPts - f - 3))))
-        b[4 * f] = v[f]
-        b[4 * f + 1] = v[f + 1]
-
-    if endCond == "natural first":
+    if extraCond == "natural first":
         A[-2] = np.concatenate((np.array([0, 0, 1, 0]), np.zeros(4 * (numPts - 2))))
         A[-1] = np.concatenate((np.zeros(4 * (numPts - 2)), np.array([3 * (t[-1] - t[-2])**2, 2 * (t[-1] - t[-2]), 1, 0])))
-    elif endCond == "natural second":
+    elif extraCond == "natural second":
         A[-2] = np.concatenate((np.array([0, 2, 0, 0]), np.zeros(4 * (numPts - 2))))
         A[-1] = np.concatenate((np.zeros(4 * (numPts - 2)), np.array([6 * (t[-1] - t[-2]), 2, 0, 0])))
-    elif endCond == "periodic":
+    elif extraCond == "periodic":
         A[-2] = np.concatenate((np.array([0, 0, 1, 0]), np.zeros(4 * (numPts - 3)), np.array([-3 * (t[-1] - t[-2])**2, -2 * (t[-1] - t[-2]), -1, 0])))
         A[-1] = np.concatenate((np.array([0, 2, 0, 0]), np.zeros(4 * (numPts - 3)), np.array([-6 * (t[-1] - t[-2]), -2, 0, 0])))
-    elif endCond == "not-a-knot":
+    elif extraCond == "not-a-knot":
         A[-2] = np.concatenate((np.array([6, 0, 0, 0, -6, 0, 0, 0]), np.zeros(4 * (numPts - 3))))
         A[-1] = np.concatenate((np.zeros(4 * (numPts - 3)), np.array([6, 0, 0, 0, -6, 0, 0, 0])))
-    elif endCond == "specified slope":
+    elif extraCond == "specified slope":
         A[-2] = np.concatenate((np.array([0, 0, 1, 0]), np.zeros(4 * (numPts - 2))))
         b[-2] = slopes[0]
         A[-1] = np.concatenate((np.zeros(4 * (numPts - 2)), np.array([3 * (t[-1] - t[-2])**2, 2 * (t[-1] - t[-2]), 1, 0])))
@@ -59,10 +59,16 @@ def main():
     t = []
     v = []
     for i in range(numPts):
-        t.append(float(input("X" + str(i + 1) + ": ")))
-        v.append(float(input("Y" + str(i + 1) + ": ")))
+        t.append(float(input("T" + str(i + 1) + ": ")))
+        v.append(float(input("V" + str(i + 1) + ": ")))
 
-    x = solve(t, v, "natural second")
+    extraCond = input("Extra condition type (natural first, natural second, periodic, not-a-knot, specified slope): ")
+    if extraCond == "specified slope":
+        slopes = [input("Start slope: "), input("End slope: ")]
+    else:
+        slopes = []
+
+    x = solve(t, v, extraCond, slopes)
 
     a = np.linspace(t[0], t[-1], 1000)
     y = f(a, x, t)
