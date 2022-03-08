@@ -55,7 +55,10 @@ def findInterval(a, t):
 def findTimeForSpeed(v, vPts, tPts, x):
     i = findInterval(v, vPts)
     t = sympy.symbols('t')
-    return sympy.solve(x[4 * i] * (t - tPts[i])**3 + x[4 * i + 1] * (t - tPts[i])**2 + x[4 * i + 2] * (t - tPts[i]) + x[4 * i + 3] - v)[0]
+    tSols = sympy.solve(x[4 * i] * (t - tPts[i])**3 + x[4 * i + 1] * (t - tPts[i])**2 + x[4 * i + 2] * (t - tPts[i]) + x[4 * i + 3] - v)
+    for time in tSols:
+        if tPts[i] <= time <= tPts[i + 1]:
+            return time
 
 def main():
     np.set_printoptions(suppress = True)
@@ -91,7 +94,7 @@ def main():
 
     print("Question 1: Time at which the car reaches 50 mph")
     tVal = findTimeForSpeed(50, v, t, x)
-    print(str(tVal) + " s")
+    print(str(tVal) + "s")
 
     print("Question 2: Distance for car to reach 90 mph")
     # Integral function
