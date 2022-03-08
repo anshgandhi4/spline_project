@@ -7,7 +7,7 @@ def solve(t, v, extraCond, slopes = []):
     numPts = len(t)
     A = np.ndarray((4 * (numPts - 1), 4 * (numPts - 1)))
     b = np.zeros(4 * (numPts - 1))
-
+    
     for c in range(numPts - 1):
         stepT = t[c + 1] - t[c]
         A[4 * c] = np.concatenate((np.zeros(4 * c), np.array([0, 0, 0, 1]), np.zeros(4 * (numPts - c - 2))))
@@ -107,6 +107,7 @@ def main():
     plt.plot(t, v)
     plt.fill_between(a, y, step = 'pre', alpha = 0.4)
     plt.plot(a, y)
+    plt.scatter(t, v, s = 30)
 
     plt.xlabel('Time (seconds)')
     plt.ylabel('Velocity (mph)')
