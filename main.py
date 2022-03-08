@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy
 
 def solve(t, v, extraCond, slopes = []):
     numPts = len(t)
     A = np.ndarray((4 * (numPts - 1), 4 * (numPts - 1)))
     b = np.zeros(4 * (numPts - 1))
-    
     for c in range(numPts - 1):
         stepT = t[c + 1] - t[c]
         A[4 * c] = np.concatenate((np.zeros(4 * c), np.array([0, 0, 0, 1]), np.zeros(4 * (numPts - c - 2))))
@@ -36,6 +36,13 @@ def solve(t, v, extraCond, slopes = []):
 
     return np.linalg.solve(A, b)
 
+def f(lst, x, t):
+    output = []
+    for a in lst:
+        i = findInterval(a, t)
+        output.append(float(x[4 * i] * (a - t[i])**3 + x[4 * i + 1] * (a - t[i])**2 + x[4 * i + 2] * (a - t[i]) + x[4 * i + 3]))
+    return output
+
 def findInterval(a, t):
     if a == t[-1]:
         return len(t) - 2
@@ -45,12 +52,10 @@ def findInterval(a, t):
         else:
             return i - 1
 
-def f(lst, x, t):
-    output = []
-    for a in lst:
-        i = findInterval(a, t)
-        output.append(float(x[4 * i] * (a - t[i])**3 + x[4 * i + 1] * (a - t[i])**2 + x[4 * i + 2] * (a - t[i]) + x[4 * i + 3]))
-    return output
+def findTimeForSpeed(v, vPts, tPts, x):
+    i = findInterval(v, vPts)
+    t = sympy.symbols('t')
+    return sympy.solve(x[4 * i] * (t - tPts[i])**3 + x[4 * i + 1] * (t - tPts[i])**2 + x[4 * i + 2] * (t - tPts[i]) + x[4 * i + 3] - v)[0]
 
 def main():
     np.set_printoptions(suppress = True)
@@ -73,16 +78,23 @@ def main():
     a = np.linspace(t[0], t[-1], 1000)
     y = f(a, x, t)
 
-    plt.scatter(t, v, s = 30)
     plt.plot(t, v)
-    plt.fill_between(a, y, step = "pre", alpha = 0.4)
     plt.plot(a, y)
+    plt.scatter(t, v, s = 30)
 
     plt.xlabel('Time (seconds)')
     plt.ylabel('Velocity (mph)')
-    plt.suptitle('Velocity vs. Time', fontsize = 14)
-    # plt.title(f'Distance to Reach {90} MPH: {round(integrate(90, x, t), 4)} miles', fontsize = 10)
     plt.show()
+
+    print("Coefficients: ")
+    print(x)
+
+    print("Question 1: Time at which the car reaches 50 mph")
+    tVal = findTimeForSpeed(50, v, t, x)
+    print(str(tVal) + " s")
+
+    print("Question 2: Distance for car to reach 90 mph")
+    # Integral function
 
 if __name__ == '__main__':
     main()
